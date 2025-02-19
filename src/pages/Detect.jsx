@@ -14,7 +14,7 @@ const Detect = () => {
       <div className="flex flex-col justify-center items-center px-4 sm:px-8 text-center mb-8">
         <img src={Img} className="w-[250px] h-[250px] sm:w-[300px] sm:h-[300px] mb-6 rounded-lg shadow-xl" alt="Warning" />
         <div className="bg-white p-6 rounded-lg shadow-md max-w-2xl">
-          <h2 className="text-xl sm:text-2xl font-semibold text-green-700 mb-4">Caution: Nearby Sensitive Areas</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold text-red-700 mb-4">Caution: Nearby Sensitive Areas</h2>
           <p className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6">
             There is a high concentration of children and vulnerable individuals in the vicinity of your current location. 
             For their safety and well-being, we kindly ask that you refrain from smoking or using any nicotine products 
