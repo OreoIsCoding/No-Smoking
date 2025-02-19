@@ -5,6 +5,21 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-le
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
+// SVG for the user’s blue circle marker
+const svgUserLocation = `
+  <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="15" cy="15" r="10" fill="#007BFF" stroke="white" stroke-width="3"/>
+  </svg>
+`;
+
+// Custom blue circle icon for user location
+const userLocationIcon = new L.Icon({
+  iconUrl: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgUserLocation)}`,
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
+  popupAnchor: [0, -15],
+});
+
 // Inline SVG for the custom green and red marker icons
 const svgSmokingMarker = `
   <svg width="30" height="45" viewBox="0 0 30 45" xmlns="http://www.w3.org/2000/svg">
@@ -281,10 +296,11 @@ const Map = () => {
           <ChangeMapCenter />
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-          {/* User location marker */}
-          <Marker position={[userLocation.lat, userLocation.lng]} icon={smokingIcon}>
+         {/* User location marker (Blue Circle) */}
+         <Marker position={[userLocation.lat, userLocation.lng]} icon={userLocationIcon}>
             <Popup>Your Current Location</Popup>
           </Marker>
+
 
           {/* Circle for the radius */}
           <Circle
