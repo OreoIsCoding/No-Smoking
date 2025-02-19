@@ -39,7 +39,7 @@ const nonSmokingIcon = new L.Icon({
 const areas = [
   { id: 1, name: "Area 1", lat: 14.411778, lng: 121.036333, type: "smoking" },
   { id: 2, name: "Area 2", lat: 14.411806, lng: 121.038500, type: "non-smoking" },
-  { id: 3, name: "Area 3", lat: 14.411278, lng: 121.038639, type: "smoking" },
+  { id: 3, name: "Area 3", lat: 14.411278, lng: 121.038639, type: "non-smoking" },
   { id: 4, name: "Area 4", lat: 14.415444, lng: 121.038778, type: "non-smoking" },
   { id: 5, name: "Area 5", lat: 14.238389, lng: 121.055611, type: "smoking" },
   { id: 6, name: "Area 6", lat: 14.818722534481978, lng: 120.90130092776394, type: "non-smoking" },
@@ -87,41 +87,74 @@ const Map = () => {
 
   useEffect(() => {
     if (userLocation) {
-      // If user is in a smoke-free area, show notification
-      const nearby = areas.filter((area) => {
+      // Find nearby areas within the defined radius
+      const nearby = areas.map((area) => {
         const distance = haversineDistance(
           userLocation.lat,
           userLocation.lng,
           area.lat,
           area.lng
         );
-        return distance <= radius;
-      });
-
-      // Show notification based on area type
-      if (nearby.length > 0) {
-        const areaType = nearby[0].type; // Assuming the user is close to one area
-        if (areaType === "smoking") {
-          setNotification("You are in a smoking area!");
-          setNotificationColor("bg-green-500"); // Green for smoking
-        } else {
-          setNotification("You are in a non-smoking area!");
-          setNotificationColor("bg-red-500"); // Red for non-smoking
-          
-          // Redirect user to /detect page after 3 seconds
+        return { ...area, distance };
+      }).filter((area) => area.distance <= radius); // Filter areas within the radius
+  
+      const smokingAreas = nearby.filter((area) => area.type === "smoking");
+      const nonSmokingAreas = nearby.filter((area) => area.type === "non-smoking");
+  
+      if (smokingAreas.length > 0 || nonSmokingAreas.length > 0) {
+        let notificationMessage = "";
+        let notificationColor = "bg-yellow-500"; // Default color when no clear condition
+  
+        // If both smoking and non-smoking areas are nearby
+        if (smokingAreas.length > 0 && nonSmokingAreas.length > 0) {
+          const closestSmoking = smokingAreas.reduce((prev, curr) => (prev.distance < curr.distance ? prev : curr));
+          const closestNonSmoking = nonSmokingAreas.reduce((prev, curr) => (prev.distance < curr.distance ? prev : curr));
+  
+          // Notify which area is closer
+          if (closestSmoking.distance < closestNonSmoking.distance) {
+            notificationMessage = "You are closer to a smoking area!";
+            notificationColor = "bg-green-500";
+          } else {
+            notificationMessage = "You are closer to a non-smoking area!";
+            notificationColor = "bg-red-500";
+  
+            // Redirect to /detect if near non-smoking area
+            setTimeout(() => {
+              navigate("/detect");
+            }, 3000);
+          }
+        }
+        // If only smoking areas are nearby
+        else if (smokingAreas.length > 0) {
+          notificationMessage = "You are in a smoking area!";
+          notificationColor = "bg-green-500";
+        }
+        // If only non-smoking areas are nearby
+        else if (nonSmokingAreas.length > 0) {
+          notificationMessage = "You are in a non-smoking area!";
+          notificationColor = "bg-red-500";
+  
+          // Redirect to /detect if near non-smoking area
           setTimeout(() => {
             navigate("/detect");
           }, 3000);
         }
-        setTimeout(() => setNotification(null), 3000); // Remove notification after 3 seconds
+  
+        // Set notification for the current proximity
+        setNotification(notificationMessage);
+        setNotificationColor(notificationColor);
+        
+        // Remove notification after 3 seconds
+        setTimeout(() => setNotification(null), 3000);
       } else {
         setNotification("No nearby areas found.");
-        setNotificationColor("bg-yellow-500"); // Yellow for no nearby areas
-        setTimeout(() => setNotification(null), 3000); // Remove notification after 3 seconds
+        setNotificationColor("bg-yellow-500");
+        setTimeout(() => setNotification(null), 3000);
       }
     }
-  }, [userLocation, navigate]); // Add navigate to dependency
-
+  }, [userLocation, navigate]);
+  
+  
   // Haversine formula to calculate the distance between two coordinates in meters
   const haversineDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371e3; // Earth radius in meters
