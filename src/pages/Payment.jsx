@@ -13,7 +13,7 @@ const navigate= useNavigate();
 
   return (
     <div className="min-h-screen bg-green-100 flex flex-col">
-      <header className="bg-green-500 text-white text-lg font-semibold p-4 text-center">
+      <header className="bg-green-900 text-white text-lg font-semibold p-4 text-center">
         FINES & PENALTIES
       </header>
       <main className="flex-grow p-6">

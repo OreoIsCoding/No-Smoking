@@ -3,12 +3,11 @@ import Img from '../assets/img/detect.png';
 
 const Detect = () => {
   return (
-    <div className="flex flex-col justify-center items-center bg-gradient-to-b from-green-100 to-green-300 min-h-screen">
+    <div className="flex flex-col justify-center items-center bg-neutral-100 min-h-screen">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-green-400 to-green-600 p-6 text-white w-full h-[150px] sm:h-[80px] flex flex-col justify-center items-center shadow-lg mb-8">
+      <div className="bg-gradient-to-r from-green-800 to-green-900 p-6 text-white w-full h-[150px] sm:h-[80px] flex flex-col justify-center items-center shadow-lg mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-center">Important Notice</h1>
-        <p className="text-sm sm:text-base text-center">For the health and safety of others, please be mindful of your surroundings.</p>
-      </div>
+       </div>
 
       {/* Main Content */}
       <div className="flex flex-col justify-center items-center px-4 sm:px-8 text-center mb-8">

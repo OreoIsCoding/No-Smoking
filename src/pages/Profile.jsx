@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { FaGlobe, FaMapMarkerAlt, FaTv, FaTrash, FaHistory, FaSignOutAlt, FaCog } from "react-icons/fa";
 import { MdSubscriptions } from "react-icons/md";
 import Navbar from "../components/Navbar";
-import ProfilePic from '../assets/img/woman.png'
+import ProfilePic from '../assets/img/woman.png';
 
 const Button = ({ children, className, ...props }) => {
   return (
@@ -18,13 +18,13 @@ const Button = ({ children, className, ...props }) => {
 
 const Profile = () => {
   return (
-    <div className="w-full h-screen flex flex-col">
+    <div className="w-full h-screen flex flex-col pb-24"> {/* Add padding-bottom for navbar */}
       <Navbar />
       <motion.div
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="p-6 bg-gradient-to-r from-green-400 to-green-600 text-white"
+        className="p-6 bg-gradient-to-r from-green-800 to-green-900 text-white"
       >
         <div className="flex items-center justify-between pb-4">
           <button>&lt;</button>
@@ -37,13 +37,15 @@ const Profile = () => {
         <motion.img
           src={ProfilePic}
           alt="Profile"
-          className="w-24 h-24 border rounded-full"
+          className="w-24 h-24 border rounded-full shadow-lg transform hover:scale-105 transition-all duration-300"
           whileHover={{ scale: 1.1 }}
         />
         <div className="ml-4">
           <h3 className="text-2xl font-semibold">Andrea Mendoza</h3>
           <p className="text-gray-500 text-base">andrea_mendoza@gmail.com</p>
-          <Button className="mt-2 bg-green-700 hover:bg-green-800 rounded-[10px]">Edit Profile</Button>
+          <Button className="mt-2 bg-green-700 hover:bg-green-800 rounded-[10px]">
+            Edit Profile
+          </Button>
         </div>
       </div>
 
@@ -74,13 +76,13 @@ function ProfileOption({ icon, text }) {
   return (
     <motion.div
       whileHover={{ scale: 1.02 }}
-      className="flex items-center justify-between p-4 hover:bg-gray-100 cursor-pointer rounded-lg"
+      className="flex items-center justify-between p-4 hover:bg-gray-100 cursor-pointer rounded-lg transition-all duration-200"
     >
       <div className="flex items-center space-x-3">
         <span className="text-xl">{icon}</span>
         <span className="text-gray-700 text-base">{text}</span>
       </div>
-      <span>&gt;</span>
+      <span className="text-gray-500">{'>'}</span>
     </motion.div>
   );
 }

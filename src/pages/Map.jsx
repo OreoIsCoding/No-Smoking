@@ -30,21 +30,21 @@ const svgSmokingMarker = `
 
 const svgNonSmokingMarker = `
   <svg width="30" height="45" viewBox="0 0 30 45" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15,0 C23.2843,0 30,6.7157 30,15 C30,26.25 15,45 15,45 C15,45 0,26.25 0,15 C0,6.7157 6.7157,0 15,0 Z" fill="#D9534F"/>
+    <path d="M15,0 C23.2843,0 30,6.7157 30,15 C30,26.25 15,45 15,45 C15,45 0,26.25 0,15 C0,6.7157,6.7157,0 15,0 Z" fill="#D9534F"/>
     <circle cx="15" cy="15" r="5" fill="white"/>
   </svg>
 `;
 
 // Create custom Leaflet icons using the SVG data URIs
 const smokingIcon = new L.Icon({
-  iconUrl: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgSmokingMarker)}`,
+  iconUrl: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgNonSmokingMarker)}`,
   iconSize: [30, 45],
   iconAnchor: [15, 45],
   popupAnchor: [0, -40],
 });
 
 const nonSmokingIcon = new L.Icon({
-  iconUrl: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgNonSmokingMarker)}`,
+  iconUrl: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgSmokingMarker)}`,
   iconSize: [30, 45],
   iconAnchor: [15, 45],
   popupAnchor: [0, -40],
@@ -52,12 +52,14 @@ const nonSmokingIcon = new L.Icon({
 
 // Coordinates for the smoke-free and smoking areas
 const areas = [
-  { id: 1, name: "Area 1", lat: 14.411778, lng: 121.036333, type: "smoking" },
-  { id: 2, name: "Area 2", lat: 14.411806, lng: 121.038500, type: "non-smoking" },
-  { id: 3, name: "Area 3", lat: 14.411278, lng: 121.038639, type: "non-smoking" },
-  { id: 4, name: "Area 4", lat: 14.415444, lng: 121.038778, type: "non-smoking" },
-  { id: 5, name: "Area 5", lat: 14.238389, lng: 121.055611, type: "smoking" },
-  { id: 6, name: "Area 6", lat: 14.818722534481978, lng: 120.90130092776394, type: "non-smoking" },
+  { id: 1, name: "Smoking Area 1", lat: 14.411778, lng: 121.036333, type: "smoking" },
+  { id: 2, name: "Non-smoking Area 2", lat: 14.411806, lng: 121.038500, type: "non-smoking" },
+  { id: 3, name: "Non-smoking Area 3", lat: 14.411278, lng: 121.038639, type: "non-smoking" },
+  { id: 4, name: "Non-smoking Area 4", lat: 14.415444, lng: 121.038778, type: "non-smoking" },
+  { id: 5, name: "Smoking Area", lat: 14.238389, lng: 121.055611, type: "smoking" },
+  { id: 6, name: "Non-smoking Area 6", lat: 14.818722534481978, lng: 120.90130092776394, type: "non-smoking" },
+  { id: 6, name: "Non-smoking Area 7", lat: 14.410703775141672, lng: 121.03808208812167, type: "non-smoking" },
+
 ];
 
 const Map = () => {
@@ -67,9 +69,12 @@ const Map = () => {
   const [notification, setNotification] = useState(null);
   const [notificationColor, setNotificationColor] = useState("bg-green-500"); // Default to green for smoking areas
   const [filter, setFilter] = useState("all"); // Filter state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown state
+  const [title, setTitle] = useState("ALL AREAS"); // Title state
   const defaultLocation = { lat: 14.41072, lng: 121.03825 };
-  const radius = 1000; // 1 km radius around the user's location
+  const radius = 500; // 1 km radius around the user's location
   const navigate = useNavigate(); // Initialize navigate for redirection
+
 
   useEffect(() => {
     let watchId;
@@ -118,7 +123,7 @@ const Map = () => {
   
       if (smokingAreas.length > 0 || nonSmokingAreas.length > 0) {
         let notificationMessage = "";
-        let notificationColor = "bg-yellow-500"; // Default color when no clear condition
+        let notificationColor = "bg-yellow-500" ; // Default color when no clear condition
   
         // If both smoking and non-smoking areas are nearby
         if (smokingAreas.length > 0 && nonSmokingAreas.length > 0) {
@@ -222,11 +227,17 @@ const Map = () => {
     return area.type === filter;
   });
 
+  const handleFilterChange = (newFilter, newTitle) => {
+    setFilter(newFilter);
+    setTitle(newTitle);
+    setIsDropdownOpen(false);
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 relative">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-green-400 to-green-600 p-4 text-white w-full flex items-center justify-center rounded-b-[24px] shadow-lg mb-6">
-        <h2 className="uppercase text-lg sm:text-xl font-semibold text-center">Smoke-Free Spots in Your Area</h2>
+      <div className="bg-gradient-to-r from-green-800 to-green-900 p-4 text-white w-full flex items-center justify-center rounded-b-[24px] shadow-lg mb-6">
+        <h2 className="uppercase text-lg sm:text-xl font-semibold text-center">{title}</h2>
       </div>
 
       {/* Notification Banner */}
@@ -236,39 +247,69 @@ const Map = () => {
         </div>
       )}
 
-      {/* Sidebar Toggle Button */}
-      <button
-        className="absolute top-45 left-2 bg-neutral-800 text-white p-2 rounded-full shadow-lg z-30"
-        onClick={() => setIsSidebarVisible(!isSidebarVisible)}
-      >
-        <div className="w-6 h-0.5 bg-white mb-1"></div>
-        <div className="w-6 h-0.5 bg-white mb-1"></div>
-        <div className="w-6 h-0.5 bg-white"></div>
-      </button>
+     { /* Sidebar Toggle Button */}
+        <button
+          className="absolute top-45 left-2 bg-neutral-800 text-white p-2 rounded-full shadow-lg z-30"
+          onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            className="w-6 h-6"
+          >
+            <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4 6h16M4 12h16m-7 6h7"
+            />
+          </svg>
+        </button>
 
-      {/* Sidebar */}
+        {/* Sidebar */}
       {isSidebarVisible && (
         <div className="absolute top-0 left-0 bg-gradient-to-b from-green-700 to-green-800 w-64 h-full shadow-xl z-30 p-6 overflow-y-auto transition-all duration-500 ease-in-out transform translate-x-0">
-          <h3 className="text-2xl font-bold text-white mb-6">Areas</h3>
-          <div className="mb-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-2xl font-bold text-white">Areas</h3>
             <button
-              className={`flex items-center justify-between w-full p-3 rounded-lg mb-2 text-white ${filter === "all" ? "bg-green-500" : "bg-transparent"}`}
-              onClick={() => setFilter("all")}
+              className="text-white text-xl"
+              onClick={() => setIsSidebarVisible(false)}
             >
-              <span>All</span>
+              &times;
             </button>
+          </div>
+          <div className="mb-6 relative">
             <button
-              className={`flex items-center justify-between w-full p-3 rounded-lg mb-2 text-white ${filter === "non-smoking" ? "bg-green-500" : "bg-transparent"}`}
-              onClick={() => setFilter("non-smoking")}
+              className="flex items-center justify-between w-full p-3 rounded-lg text-white bg-green-500"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              <span>Non-Smoking</span>
+              <span>{filter === "all" ? "All" : filter === "non-smoking" ? "Non-Smoking" : "Smoking"}</span>
+              <span className="ml-2">{isDropdownOpen ? "▲" : "▼"}</span>
             </button>
-            <button
-              className={`flex items-center justify-between w-full p-3 rounded-lg mb-2 text-white ${filter === "smoking" ? "bg-green-500" : "bg-transparent"}`}
-              onClick={() => setFilter("smoking")}
-            >
-              <span>Smoking</span>
-            </button>
+            {isDropdownOpen && (
+              <div className="absolute top-full left-0 w-full bg-white rounded-lg shadow-lg mt-2 z-10">
+                <button
+                  className={`flex items-center justify-between w-full p-3 rounded-lg mb-2 text-gray-700 ${filter === "all" ? "bg-green-500 text-white" : "bg-transparent"}`}
+                  onClick={() => handleFilterChange("all", "All Areas")}
+                >
+                  <span>All</span>
+                </button>
+                <button
+                  className={`flex items-center justify-between w-full p-3 rounded-lg mb-2 text-gray-700 ${filter === "non-smoking" ? "bg-green-500 text-white" : "bg-transparent"}`}
+                  onClick={() => handleFilterChange("non-smoking", "Non-Smoking Areas")}
+                >
+                  <span>Non-Smoking</span>
+                </button>
+                <button
+                  className={`flex items-center justify-between w-full p-3 rounded-lg mb-2 text-gray-700 ${filter === "smoking" ? "bg-green-500 text-white" : "bg-transparent"}`}
+                  onClick={() => handleFilterChange("smoking", "Smoking Areas")}
+                >
+                  <span>Smoking</span>
+                </button>
+              </div>
+            )}
           </div>
           <ul>
             {filteredAreas.map((area) => (
