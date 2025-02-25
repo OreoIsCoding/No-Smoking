@@ -21,14 +21,14 @@ const userLocationIcon = new L.Icon({
 });
 
 // Inline SVG for the custom green and red marker icons
-const svgSmokingMarker = `
+const svgNonSmokingMarker = `
   <svg width="30" height="45" viewBox="0 0 30 45" xmlns="http://www.w3.org/2000/svg">
     <path d="M15,0 C23.2843,0 30,6.7157 30,15 C30,26.25 15,45 15,45 C15,45 0,26.25 0,15 C0,6.7157,0 15,0 Z" fill="#73C329"/>
     <circle cx="15" cy="15" r="5" fill="white"/>
   </svg>
 `;
 
-const svgNonSmokingMarker = `
+const svgSmokingMarker = `
   <svg width="30" height="45" viewBox="0 0 30 45" xmlns="http://www.w3.org/2000/svg">
     <path d="M15,0 C23.2843,0 30,6.7157 30,15 C30,26.25 15,45 15,45 C15,45 0,26.25 0,15 C0,6.7157,6.7157,0 15,0 Z" fill="#D9534F"/>
     <circle cx="15" cy="15" r="5" fill="white"/>
@@ -54,9 +54,9 @@ const nonSmokingIcon = new L.Icon({
 const areas = [
   { id: 1, name: "Smoking Area 1", lat: 14.411778, lng: 121.036333, type: "smoking" },
   { id: 2, name: "Non-smoking Area 2", lat: 14.411806, lng: 121.038500, type: "non-smoking" },
-  { id: 3, name: "Non-smoking Area 3", lat: 14.411278, lng: 121.038639, type: "non-smoking" },
-  { id: 4, name: "Non-smoking Area 4", lat: 14.415444, lng: 121.038778, type: "non-smoking" },
-  { id: 5, name: "Smoking Area", lat: 14.238389, lng: 121.055611, type: "smoking" },
+  { id: 3, name: "Smoking Area 3", lat: 14.411278, lng: 121.038639, type: "smoking" },
+  { id: 4, name: "Smoking Area 4", lat: 14.415444, lng: 121.038778, type: "smoking" },
+  { id: 5, name: "Smoking Area 5", lat: 14.238389, lng: 121.055611, type: "smoking" },
   { id: 6, name: "Non-smoking Area 6", lat: 14.818722534481978, lng: 120.90130092776394, type: "non-smoking" },
   { id: 6, name: "Non-smoking Area 7", lat: 14.410703775141672, lng: 121.03808208812167, type: "non-smoking" },
 
@@ -72,8 +72,10 @@ const Map = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown state
   const [title, setTitle] = useState("ALL AREAS"); // Title state
   const defaultLocation = { lat: 14.41072, lng: 121.03825 };
-  const radius = 15; // 1 km radius around the user's location
+  const radius = 45; // 1 km radius around the user's location
   const navigate = useNavigate(); // Initialize navigate for redirection
+const [hasDetected, setHasDetected] = useState(false);
+const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple redirects
 
 
   useEffect(() => {
@@ -106,73 +108,68 @@ const Map = () => {
   }, []);
 
   useEffect(() => {
-    if (userLocation) {
-      // Find nearby areas within the defined radius
-      const nearby = areas.map((area) => {
-        const distance = haversineDistance(
-          userLocation.lat,
-          userLocation.lng,
-          area.lat,
-          area.lng
+    if (!userLocation || hasDetected) return; 
+  
+    setHasDetected(true);
+  
+    const nearby = areas
+      .map((area) => ({
+        ...area,
+        distance: haversineDistance(userLocation.lat, userLocation.lng, area.lat, area.lng),
+      }))
+      .filter((area) => area.distance <= radius);
+  
+    const smokingAreas = nearby.filter((area) => area.type === "smoking");
+    const nonSmokingAreas = nearby.filter((area) => area.type === "non-smoking");
+  
+    let notificationMessage = "No nearby areas found.";
+    let notificationColor = "bg-yellow-500";
+  
+    if (smokingAreas.length > 0 || nonSmokingAreas.length > 0) {
+      if (smokingAreas.length > 0 && nonSmokingAreas.length > 0) {
+        const closestSmoking = smokingAreas.reduce((prev, curr) => 
+          prev.distance < curr.distance ? prev : curr
         );
-        return { ...area, distance };
-      }).filter((area) => area.distance <= radius); // Filter areas within the radius
+        const closestNonSmoking = nonSmokingAreas.reduce((prev, curr) => 
+          prev.distance < curr.distance ? prev : curr
+        );
   
-      const smokingAreas = nearby.filter((area) => area.type === "smoking");
-      const nonSmokingAreas = nearby.filter((area) => area.type === "non-smoking");
-  
-      if (smokingAreas.length > 0 || nonSmokingAreas.length > 0) {
-        let notificationMessage = "";
-        let notificationColor = "bg-yellow-500" ; // Default color when no clear condition
-  
-        // If both smoking and non-smoking areas are nearby
-        if (smokingAreas.length > 0 && nonSmokingAreas.length > 0) {
-          const closestSmoking = smokingAreas.reduce((prev, curr) => (prev.distance < curr.distance ? prev : curr));
-          const closestNonSmoking = nonSmokingAreas.reduce((prev, curr) => (prev.distance < curr.distance ? prev : curr));
-  
-          // Notify which area is closer
-          if (closestSmoking.distance < closestNonSmoking.distance) {
-            notificationMessage = "You are closer to a smoking area!";
-            notificationColor = "bg-green-500";
-          } else {
-            notificationMessage = "You are closer to a non-smoking area!";
-            notificationColor = "bg-red-500";
-  
-            // Redirect to /detect if near non-smoking area
-            setTimeout(() => {
-              navigate("/detect");
-            }, 3000);
-          }
-        }
-        // If only smoking areas are nearby
-        else if (smokingAreas.length > 0) {
-          notificationMessage = "You are in a smoking area!";
+        if (closestSmoking.distance < closestNonSmoking.distance) {
+          notificationMessage = "You are closer to a smoking area!";
           notificationColor = "bg-green-500";
-        }
-        // If only non-smoking areas are nearby
-        else if (nonSmokingAreas.length > 0) {
-          notificationMessage = "You are in a non-smoking area!";
+        } else {
+          notificationMessage = "You are closer to a non-smoking area!";
           notificationColor = "bg-red-500";
   
-          // Redirect to /detect if near non-smoking area
-          setTimeout(() => {
-            navigate("/detect");
-          }, 3000);
+          if (!hasRedirected && !sessionStorage.getItem("hasRedirected")) {
+            sessionStorage.setItem("hasRedirected", "true");
+            setHasRedirected(true);
+            setTimeout(() => navigate("/detect"), 3000);
+          }
         }
+      } else if (smokingAreas.length > 0) {
+        notificationMessage = "You are in a smoking area!";
+        notificationColor = "bg-green-500";
+      } else if (nonSmokingAreas.length > 0) {
+        notificationMessage = "You are in a non-smoking area!";
+        notificationColor = "bg-red-500";
   
-        // Set notification for the current proximity
-        setNotification(notificationMessage);
-        setNotificationColor(notificationColor);
-        
-        // Remove notification after 3 seconds
-        setTimeout(() => setNotification(null), 3000);
-      } else {
-        setNotification("No nearby areas found.");
-        setNotificationColor("bg-yellow-500");
-        setTimeout(() => setNotification(null), 3000);
+        if (!hasRedirected && !sessionStorage.getItem("hasRedirected")) {
+          sessionStorage.setItem("hasRedirected", "true");
+          setHasRedirected(true);
+          setTimeout(() => navigate("/detect"), 3000);
+        }
       }
     }
-  }, [userLocation, navigate]);
+  
+    setNotification(notificationMessage);
+    setNotificationColor(notificationColor);
+  
+    setTimeout(() => {
+      setNotification(null);
+      setHasDetected(false);
+    }, 3000);
+  }, [userLocation, areas, navigate, hasDetected, hasRedirected]);
   
   
   // Haversine formula to calculate the distance between two coordinates in meters
