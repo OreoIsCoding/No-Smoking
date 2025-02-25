@@ -72,7 +72,7 @@ const Map = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown state
   const [title, setTitle] = useState("ALL AREAS"); // Title state
   const defaultLocation = { lat: 14.41072, lng: 121.03825 };
-  const radius = 500; // 1 km radius around the user's location
+  const radius = 15; // 1 km radius around the user's location
   const navigate = useNavigate(); // Initialize navigate for redirection
 
 
