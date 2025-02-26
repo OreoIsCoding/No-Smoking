@@ -58,7 +58,7 @@ const areas = [
   { id: 4, name: "Smoking Area 4", lat: 14.415444, lng: 121.038778, type: "smoking" },
   { id: 5, name: "Smoking Area 5", lat: 14.238389, lng: 121.055611, type: "smoking" },
   { id: 6, name: "Non-smoking Area 6", lat: 14.818722534481978, lng: 120.90130092776394, type: "non-smoking" },
-  { id: 6, name: "Non-smoking Area 7", lat: 14.410703775141672, lng: 121.03808208812167, type: "non-smoking" },
+  { id: 7, name: "Non-smoking Area 7", lat: 14.410703775141672, lng: 121.03808208812167, type: "non-smoking" },
 
 ];
 
@@ -238,13 +238,13 @@ const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple r
       </div>
 
       {/* Notification Banner */}
-      {notification && (
-        <div className={`flex justify-center items-center ${notificationColor} bg-opacity-80 text-white p-4 absolute top-16 left-0 right-0 rounded-md shadow-md z-30`}>
-          {notification}
-        </div>
-      )}
+        {notification && (
+          <div className={`flex justify-center items-center ${notificationColor} bg-opacity-80 text-white p-2 absolute top-16 left-1/2 transform -translate-x-1/2 rounded-md shadow-md z-30 max-w-xs w-full text-center`}>
+            {notification}
+          </div>
+        )}
 
-     { /* Sidebar Toggle Button */}
+           { /* Sidebar Toggle Button */}
         <button
           className="absolute top-45 left-2 bg-neutral-800 text-white p-2 rounded-full shadow-lg z-30"
           onClick={() => setIsSidebarVisible(!isSidebarVisible)}
