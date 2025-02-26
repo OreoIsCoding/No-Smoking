@@ -53,12 +53,12 @@ const nonSmokingIcon = new L.Icon({
 // Coordinates for the smoke-free and smoking areas
 const areas = [
   { id: 1, name: "Smoking Area 1", lat: 14.411778, lng: 121.036333, type: "smoking" },
-  { id: 2, name: "Non-smoking Area 2", lat: 14.411806, lng: 121.038500, type: "non-smoking" },
+  { id: 2, name: "Non-smoking Area 1", lat: 14.411806, lng: 121.038500, type: "non-smoking" },
   { id: 3, name: "Smoking Area 3", lat: 14.411278, lng: 121.038639, type: "smoking" },
   { id: 4, name: "Smoking Area 4", lat: 14.415444, lng: 121.038778, type: "smoking" },
   { id: 5, name: "Smoking Area 5", lat: 14.238389, lng: 121.055611, type: "smoking" },
-  { id: 6, name: "Non-smoking Area 6", lat: 14.818722534481978, lng: 120.90130092776394, type: "non-smoking" },
-  { id: 7 , name: "Non-smoking Area 7", lat: 14.410703775141672, lng: 121.03808208812167, type: "non-smoking" },
+  { id: 6, name: "Non-smoking Area 2", lat: 14.818722534481978, lng: 120.90130092776394, type: "non-smoking" },
+  { id: 7 , name: "Non-smoking Area 3", lat: 14.410703775141672, lng: 121.03808208812167, type: "non-smoking" },
 
 ];
 
