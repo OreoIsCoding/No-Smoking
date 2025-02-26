@@ -58,7 +58,7 @@ const areas = [
   { id: 4, name: "Smoking Area 4", lat: 14.415444, lng: 121.038778, type: "smoking" },
   { id: 5, name: "Smoking Area 5", lat: 14.238389, lng: 121.055611, type: "smoking" },
   { id: 6, name: "Non-smoking Area 6", lat: 14.818722534481978, lng: 120.90130092776394, type: "non-smoking" },
-  { id: 7, name: "Non-smoking Area 7", lat: 14.410703775141672, lng: 121.03808208812167, type: "non-smoking" },
+  { id: 7 , name: "Non-smoking Area 7", lat: 14.410703775141672, lng: 121.03808208812167, type: "non-smoking" },
 
 ];
 
@@ -108,10 +108,11 @@ const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple r
   }, []);
 
   useEffect(() => {
-    if (!userLocation || hasDetected) return; 
+    if (!userLocation || hasDetected) return;
   
     setHasDetected(true);
   
+    // Calculate distance for each area and filter by radius
     const nearby = areas
       .map((area) => ({
         ...area,
@@ -119,6 +120,7 @@ const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple r
       }))
       .filter((area) => area.distance <= radius);
   
+    // Separate smoking and non-smoking areas
     const smokingAreas = nearby.filter((area) => area.type === "smoking");
     const nonSmokingAreas = nearby.filter((area) => area.type === "non-smoking");
   
@@ -126,39 +128,19 @@ const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple r
     let notificationColor = "bg-yellow-500";
   
     if (smokingAreas.length > 0 || nonSmokingAreas.length > 0) {
-      if (smokingAreas.length > 0 && nonSmokingAreas.length > 0) {
-        const closestSmoking = smokingAreas.reduce((prev, curr) => 
-          prev.distance < curr.distance ? prev : curr
-        );
-        const closestNonSmoking = nonSmokingAreas.reduce((prev, curr) => 
-          prev.distance < curr.distance ? prev : curr
-        );
-  
-        if (closestSmoking.distance < closestNonSmoking.distance) {
-          notificationMessage = "You are closer to a smoking area!";
-          notificationColor = "bg-green-500";
-        } else {
-          notificationMessage = "You are closer to a non-smoking area!";
-          notificationColor = "bg-red-500";
-  
-          if (!hasRedirected && !sessionStorage.getItem("hasRedirected")) {
-            sessionStorage.setItem("hasRedirected", "true");
-            setHasRedirected(true);
-            setTimeout(() => navigate("/detect"), 3000);
-          }
-        }
-      } else if (smokingAreas.length > 0) {
+      if (smokingAreas.length > 0) {
         notificationMessage = "You are in a smoking area!";
         notificationColor = "bg-green-500";
       } else if (nonSmokingAreas.length > 0) {
         notificationMessage = "You are in a non-smoking area!";
         notificationColor = "bg-red-500";
+      }
   
-        if (!hasRedirected && !sessionStorage.getItem("hasRedirected")) {
-          sessionStorage.setItem("hasRedirected", "true");
-          setHasRedirected(true);
-          setTimeout(() => navigate("/detect"), 3000);
-        }
+      // Redirect if necessary
+      if (!hasRedirected && !sessionStorage.getItem("hasRedirected")) {
+        sessionStorage.setItem("hasRedirected", "true");
+        setHasRedirected(true);
+        setTimeout(() => navigate("/detect"), 3000);
       }
     }
   
@@ -204,9 +186,10 @@ const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple r
 
   const handleAreaClick = (area) => {
     setSelectedArea(area); // Set the selected area to center on map
+    setTitle(area.name); // Update the title to the selected area's name
     setIsSidebarVisible(false); // Close the sidebar when an area is selected
   };
-
+  
   // Component to control map center change and show the area name
   const ChangeMapCenter = () => {
     const map = useMap();
@@ -217,19 +200,26 @@ const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple r
     }, [selectedArea, map]);
     return null;
   };
-
+  
   // Filter areas based on the selected filter
   const filteredAreas = areas.filter((area) => {
     if (filter === "all") return true;
     return area.type === filter;
   });
-
+  
   const handleFilterChange = (newFilter, newTitle) => {
     setFilter(newFilter);
-    setTitle(newTitle);
+    
+    if (newFilter === "all") {
+      setSelectedArea(null); // Reset the selected area when filter is "all"
+      setTitle("All areas"); // Set the title to "all"
+    } else {
+      setTitle(newTitle); // Set the title to the provided name for the selected area
+    }
+    
     setIsDropdownOpen(false);
   };
-
+  
   return (
     <div className="flex flex-col h-screen bg-gray-50 relative">
       {/* Header Section */}
