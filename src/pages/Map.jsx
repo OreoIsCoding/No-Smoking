@@ -21,14 +21,14 @@ const userLocationIcon = new L.Icon({
 });
 
 // Inline SVG for the custom green and red marker icons
-const svgNonSmokingMarker = `
+const svgSmokingMarker = `
   <svg width="30" height="45" viewBox="0 0 30 45" xmlns="http://www.w3.org/2000/svg">
     <path d="M15,0 C23.2843,0 30,6.7157 30,15 C30,26.25 15,45 15,45 C15,45 0,26.25 0,15 C0,6.7157,0 15,0 Z" fill="#73C329"/>
     <circle cx="15" cy="15" r="5" fill="white"/>
   </svg>
 `;
 
-const svgSmokingMarker = `
+const svgNonSmokingMarker = `
   <svg width="30" height="45" viewBox="0 0 30 45" xmlns="http://www.w3.org/2000/svg">
     <path d="M15,0 C23.2843,0 30,6.7157 30,15 C30,26.25 15,45 15,45 C15,45 0,26.25 0,15 C0,6.7157,6.7157,0 15,0 Z" fill="#D9534F"/>
     <circle cx="15" cy="15" r="5" fill="white"/>
@@ -53,13 +53,11 @@ const nonSmokingIcon = new L.Icon({
 // Coordinates for the smoke-free and smoking areas
 const areas = [
   { id: 1, name: "Smoking Area 1", lat: 14.411778, lng: 121.036333, type: "smoking" },
-  { id: 2, name: "Non-smoking Area 1", lat: 14.411806, lng: 121.038500, type: "non-smoking" },
-  { id: 3, name: "Smoking Area 3", lat: 14.411278, lng: 121.038639, type: "smoking" },
-  { id: 4, name: "Smoking Area 4", lat: 14.415444, lng: 121.038778, type: "smoking" },
+  { id: 2, name: "Smoke-Free Area 2", lat: 14.411806, lng: 121.038500, type: "non-smoking" },
+  { id: 3, name: "Smoke-Free Area 3", lat: 14.411278, lng: 121.038639, type: "non-smoking" },
+  { id: 4, name: "Smoke-Free Area 4", lat: 14.415444, lng: 121.038778, type: "non-smoking" },
   { id: 5, name: "Smoking Area 5", lat: 14.238389, lng: 121.055611, type: "smoking" },
-  { id: 6, name: "Non-smoking Area 2", lat: 14.818722534481978, lng: 120.90130092776394, type: "non-smoking" },
-  { id: 7 , name: "Non-smoking Area 3", lat: 14.410703775141672, lng: 121.03808208812167, type: "non-smoking" },
-
+  { id: 6, name: "Smoke-Free Area 6", lat: 14.818722534481978, lng: 120.90130092776394, type: "non-smoking" },
 ];
 
 const Map = () => {
@@ -72,11 +70,8 @@ const Map = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown state
   const [title, setTitle] = useState("ALL AREAS"); // Title state
   const defaultLocation = { lat: 14.41072, lng: 121.03825 };
-  const radius = 45; // 1 km radius around the user's location
+  const radius = 100; // 1 km radius around the user's location
   const navigate = useNavigate(); // Initialize navigate for redirection
-const [hasDetected, setHasDetected] = useState(false);
-const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple redirects
-
 
   useEffect(() => {
     let watchId;
@@ -108,50 +103,73 @@ const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple r
   }, []);
 
   useEffect(() => {
-    if (!userLocation || hasDetected) return;
+    if (userLocation) {
+      // Find nearby areas within the defined radius
+      const nearby = areas.map((area) => {
+        const distance = haversineDistance(
+          userLocation.lat,
+          userLocation.lng,
+          area.lat,
+          area.lng
+        );
+        return { ...area, distance };
+      }).filter((area) => area.distance <= radius); // Filter areas within the radius
   
-    setHasDetected(true);
+      const smokingAreas = nearby.filter((area) => area.type === "smoking");
+      const nonSmokingAreas = nearby.filter((area) => area.type === "non-smoking");
   
-    // Calculate distance for each area and filter by radius
-    const nearby = areas
-      .map((area) => ({
-        ...area,
-        distance: haversineDistance(userLocation.lat, userLocation.lng, area.lat, area.lng),
-      }))
-      .filter((area) => area.distance <= radius);
+      if (smokingAreas.length > 0 || nonSmokingAreas.length > 0) {
+        let notificationMessage = "";
+        let notificationColor = "bg-yellow-500" ; // Default color when no clear condition
   
-    // Separate smoking and non-smoking areas
-    const smokingAreas = nearby.filter((area) => area.type === "smoking");
-    const nonSmokingAreas = nearby.filter((area) => area.type === "non-smoking");
+        // If both smoking and non-smoking areas are nearby
+        if (smokingAreas.length > 0 && nonSmokingAreas.length > 0) {
+          const closestSmoking = smokingAreas.reduce((prev, curr) => (prev.distance < curr.distance ? prev : curr));
+          const closestNonSmoking = nonSmokingAreas.reduce((prev, curr) => (prev.distance < curr.distance ? prev : curr));
   
-    let notificationMessage = "No nearby areas found.";
-    let notificationColor = "bg-yellow-500";
+          // Notify which area is closer
+          if (closestSmoking.distance < closestNonSmoking.distance) {
+            notificationMessage = "You are closer to a smoking area!";
+            notificationColor = "bg-green-500";
+          } else {
+            notificationMessage = "You are closer to a non-smoking area!";
+            notificationColor = "bg-red-500";
   
-    if (smokingAreas.length > 0 || nonSmokingAreas.length > 0) {
-      if (smokingAreas.length > 0) {
-        notificationMessage = "You are in a smoking area!";
-        notificationColor = "bg-green-500";
-      } else if (nonSmokingAreas.length > 0) {
-        notificationMessage = "You are in a non-smoking area!";
-        notificationColor = "bg-red-500";
-      }
+            // Redirect to /detect if near non-smoking area
+            setTimeout(() => {
+              navigate("/detect");
+            }, 3000);
+          }
+        }
+        // If only smoking areas are nearby
+        else if (smokingAreas.length > 0) {
+          notificationMessage = "You are in a smoking area!";
+          notificationColor = "bg-green-500";
+        }
+        // If only non-smoking areas are nearby
+        else if (nonSmokingAreas.length > 0) {
+          notificationMessage = "You are in a non-smoking area!";
+          notificationColor = "bg-red-500";
   
-      // Redirect if necessary
-      if (!hasRedirected && !sessionStorage.getItem("hasRedirected")) {
-        sessionStorage.setItem("hasRedirected", "true");
-        setHasRedirected(true);
-        setTimeout(() => navigate("/detect"), 3000);
+          // Redirect to /detect if near non-smoking area
+          setTimeout(() => {
+            navigate("/detect");
+          }, 3000);
+        }
+  
+        // Set notification for the current proximity
+        setNotification(notificationMessage);
+        setNotificationColor(notificationColor);
+        
+        // Remove notification after 3 seconds
+        setTimeout(() => setNotification(null), 3000);
+      } else {
+        setNotification("No nearby areas found.");
+        setNotificationColor("bg-yellow-500");
+        setTimeout(() => setNotification(null), 3000);
       }
     }
-  
-    setNotification(notificationMessage);
-    setNotificationColor(notificationColor);
-  
-    setTimeout(() => {
-      setNotification(null);
-      setHasDetected(false);
-    }, 3000);
-  }, [userLocation, areas, navigate, hasDetected, hasRedirected]);
+  }, [userLocation, navigate]);
   
   
   // Haversine formula to calculate the distance between two coordinates in meters
@@ -186,10 +204,9 @@ const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple r
 
   const handleAreaClick = (area) => {
     setSelectedArea(area); // Set the selected area to center on map
-    setTitle(area.name); // Update the title to the selected area's name
     setIsSidebarVisible(false); // Close the sidebar when an area is selected
   };
-  
+
   // Component to control map center change and show the area name
   const ChangeMapCenter = () => {
     const map = useMap();
@@ -200,26 +217,19 @@ const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple r
     }, [selectedArea, map]);
     return null;
   };
-  
+
   // Filter areas based on the selected filter
   const filteredAreas = areas.filter((area) => {
     if (filter === "all") return true;
     return area.type === filter;
   });
-  
+
   const handleFilterChange = (newFilter, newTitle) => {
     setFilter(newFilter);
-    
-    if (newFilter === "all") {
-      setSelectedArea(null); // Reset the selected area when filter is "all"
-      setTitle("All areas"); // Set the title to "all"
-    } else {
-      setTitle(newTitle); // Set the title to the provided name for the selected area
-    }
-    
+    setTitle(newTitle);
     setIsDropdownOpen(false);
   };
-  
+
   return (
     <div className="flex flex-col h-screen bg-gray-50 relative">
       {/* Header Section */}
@@ -228,13 +238,13 @@ const [hasRedirected, setHasRedirected] = useState(false); // Prevent multiple r
       </div>
 
       {/* Notification Banner */}
-        {notification && (
-          <div className={`flex justify-center items-center ${notificationColor} bg-opacity-80 text-white p-2 absolute top-16 left-1/2 transform -translate-x-1/2 rounded-md shadow-md z-30 max-w-xs w-full text-center`}>
-            {notification}
-          </div>
-        )}
+      {notification && (
+        <div className={`flex justify-center items-center ${notificationColor} bg-opacity-80 text-white p-4 absolute top-16 left-0 right-0 rounded-md shadow-md z-30`}>
+          {notification}
+        </div>
+      )}
 
-           { /* Sidebar Toggle Button */}
+     { /* Sidebar Toggle Button */}
         <button
           className="absolute top-45 left-2 bg-neutral-800 text-white p-2 rounded-full shadow-lg z-30"
           onClick={() => setIsSidebarVisible(!isSidebarVisible)}

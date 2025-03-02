@@ -3,8 +3,8 @@ import Home from "./pages/Home";
 import Map from "./pages/Map";
  import Detect from "./pages/Detect";
 import Profile from "./pages/Profile";
-import Payment from "./pages/Payment"
-import Wallet from "./pages/Wallet"
+ import Wallet from "./pages/Wallet"
+import ConvertPoints from "./pages/ConvertPoints";
  
 const App = () => {
   return (
@@ -14,8 +14,8 @@ const App = () => {
         <Route path="/map" element={<Map />} />
         <Route path="/detect" element={<Detect/>} />
         <Route path="/profile" element={<Profile/>} />
-        <Route path = "/payment" element={<Payment/>} />
-        <Route path = "/wallet" element={<Wallet/>} />
+        <Route path = "/convert-points" element={<ConvertPoints/>} />
+        <Route path = "/points" element={<Wallet/>} />
 
 
 

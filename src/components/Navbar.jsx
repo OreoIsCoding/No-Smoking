@@ -26,7 +26,7 @@ const navLinks = [
   { to: "/", Icon: LucideHome, size: 24 },
   { to: "/profile", Icon: User2Icon, size: 22 },
   { to: "/map", Icon: MapPin, size: 26 },
-  { to: "/wallet", Icon: GiPayMoney, size: 24 },
+  { to: "/points", Icon: GiPayMoney, size: 24 },
 ];
 
 export default Navbar;

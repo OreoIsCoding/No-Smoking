@@ -1,89 +1,95 @@
 import { motion } from "framer-motion";
 import { MdDownload } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
 import Navbar from "../components/Navbar";
 
 const Wallet = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const [user, setUser] = useState({
+    name: "Andrea Mendoza",
+    points: 15000,
+    cardNumber: "2208 1996 4900 1234",
+    transactionHistory: [
+      { date: "1 Feb 2024", points: 100, type: "earned", description: "Compliance Points" },
+      { date: "10 Jan 2024", points: -50, type: "penalty", description: "Smoking Violation" },
+      { date: "5 Jan 2024", points: -100, type: "penalty", description: "Smoking Violation" },
+      { date: "1 Jan 2024", points: -75, type: "penalty", description: "Smoking Violation" }
+    ],
+  });
+
+  const { userPoints } = location.state || { userPoints: user.points };
+  const [showAccountNumber, setShowAccountNumber] = useState(false);
+
+  const toggleAccountNumber = () => {
+    setShowAccountNumber(!showAccountNumber);
+  };
+
+  const conversionRate = 0.10;
+  const moneyEquivalent = userPoints * conversionRate;
 
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-100 pb-18">
       <Navbar />
-
-      {/* Wallet Balance Section */}
       <div className="p-6 bg-gradient-to-r from-green-800 to-green-900 text-white flex justify-center shadow-lg">
-        <h2 className="text-xl sm:text-2xl font-bold">Wallet Overview</h2>
+        <h2 className="text-xl sm:text-2xl font-bold">Points</h2>
       </div>
-
-      {/* Wrapper Card for everything with rounded top */}
       <div className="p-10 mt-2 bg-white shadow-lg overflow-auto rounded-t-xl flex flex-col mx-auto max-w-full w-full sm:max-w-lg lg:max-w-xl xl:max-w-2xl">
-        {/* Wallet Balance Section */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold">Wallet Balance</h2>
-          <MdDownload className="text-2xl cursor-pointer hover:text-green-500 transition duration-300" />
+        <div className="mt-6 p-4 w-full max-w-md bg-gradient-to-r from-green-700 via-green-800 to-green-900 text-white rounded-2xl shadow-2xl flex flex-col mx-auto space-y-4">
+          <div className="text-center">
+            <span className="text-lg font-medium opacity-70">Available Points</span>
+          </div>
+          <h3 className="text-4xl font-extrabold mb-4 text-center">{userPoints}</h3>
+          <p className="text-lg font-medium text-center">
+            Equivalent Cash: ₱{moneyEquivalent.toFixed(2)}
+          </p>
+          <div className="text-center">
+            <p className="text-xl font-semibold">{user.name}</p>
+            {showAccountNumber ? (
+              <p className="text-sm text-gray-300 mt-1 tracking-wide">{user.cardNumber}</p>
+            ) : (
+              <p className="text-sm text-gray-300 mt-1 tracking-wide">**** **** **** ****</p>
+            )}
+          </div>
+          <div className="flex justify-between mt-4">
+            <button
+              className="text-sm font-semibold text-green-200 hover:text-green-400 cursor-pointer transition duration-300"
+              onClick={() => navigate("/convert-points", { state: { userPoints } })}
+            >
+              Convert to Money
+            </button>
+            <button
+              className="text-sm font-semibold text-green-200 hover:text-green-400 transition duration-300"
+              onClick={toggleAccountNumber}
+            >
+              {showAccountNumber ? 'Hide Details' : 'View Details'}
+            </button>
+          </div>
         </div>
-
-        {/* Wallet Balance Card */}
-        <div className="mt-4 p-6 w-full max-w-md bg-gradient-to-r from-green-800 to-green-900 text-white rounded-xl shadow-lg flex flex-col mx-auto">
-          <h3 className="text-3xl font-extrabold mb-4">$7,409,332</h3>
-          <p className="text-lg font-medium">Andrea Mendoza</p>
-          <p className="tracking-wider text-sm opacity-80">2208 1996 4900</p>
-        </div>
-
-        {/* Latest Transactions */}
-        <div className="flex items-center justify-between mt-6">
-          <h3 className="text-lg font-semibold">Latest Transactions</h3>
-          <button className="text-green-600 hover:text-green-800 transition duration-300">View All</button>
-        </div>
-
-        {/* Transaction Items */}
-        <div className="mt-4 space-y-4">
-          <TransactionItem title="Angga Big Park" time="10 hours ago" amount="$49,509" date="12 Jan 2024" />
-          <TransactionItem title="Top Up" time="-" amount="$43,129,509" date="12 Jan 2024" />
-          <TransactionItem title="Angga Big Park" time="10 hours ago" amount="$49,509" date="12 Jan 2024" />
-        </div>
-
-        {/* Penalty History */}
         <div className="mt-6">
-          <h3 className="text-lg font-semibold">Penalty History</h3>
+          <h3 className="text-lg font-semibold">Transaction History</h3>
           <div className="mt-4 space-y-4">
-            <PenaltyItem title="Late Payment Fee" date="10 Jan 2024" amount="$50" navigate={navigate} />
-            <PenaltyItem title="Smoking Violation" date="5 Jan 2024" amount="$100" navigate={navigate} />
-            <PenaltyItem title="Overdue Fine" date="1 Jan 2024" amount="$75" navigate={navigate} />
+            {user.transactionHistory.map((transaction, index) => (
+              <motion.div
+                key={index}
+                whileTap={{ scale: 0.95 }}
+                className={`flex items-center justify-between p-4 rounded-lg shadow-sm cursor-pointer transition duration-300 ${transaction.type === "earned" ? "bg-green-50" : "bg-red-50"}`}
+              >
+                <div className="flex flex-col">
+                  <h4 className={`text-lg font-medium ${transaction.type === "earned" ? "text-green-600" : "text-red-600"}`}>{transaction.description}</h4>
+                  <p className="text-sm text-gray-500">{transaction.date}</p>
+                </div>
+                <p className={`text-lg font-semibold ${transaction.type === "earned" ? "text-green-600" : "text-red-600"}`}>
+                  {transaction.type === "earned" ? `+${Math.abs(transaction.points)}` : `${transaction.points}`}
+                </p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>
     </div>
-  );
-};
-
-// Transaction Item Component
-const TransactionItem = ({ title, time, amount, date }) => {
-  return (
-    <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg shadow-sm hover:shadow-md transition duration-300">
-      <div className="flex flex-col">
-        <h4 className="text-lg font-medium text-gray-800">{title}</h4>
-        <p className="text-sm text-gray-500">{time} • {date}</p>
-      </div>
-      <p className="text-lg font-semibold text-green-600">{amount}</p>
-    </div>
-  );
-};
-
-// Penalty Item Component
-const PenaltyItem = ({ title, date, amount, navigate }) => {
-  return (
-    <motion.div
-      whileTap={{ scale: 0.95 }}
-      className="flex items-center justify-between bg-gray-50 p-4 rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 hover:shadow-md transition duration-300"
-      onClick={() => navigate("/payment")}
-    >
-      <div className="flex flex-col">
-        <h4 className="text-lg font-medium text-gray-800">{title}</h4>
-        <p className="text-sm text-gray-500">{date}</p>
-      </div>
-      <p className="text-lg font-semibold text-red-600">{amount}</p>
-    </motion.div>
   );
 };
 
